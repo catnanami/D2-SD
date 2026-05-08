@@ -1,0 +1,27 @@
+# Core deep learning stack
+# Pin torch to a CUDA-enabled wheel that matches your system; the version
+# below is what we run our experiments against. See README for details.
+torch>=2.5.0
+transformers>=4.56.0
+accelerate>=1.0.0
+datasets>=3.0.0
+numpy>=1.26.0
+typing_extensions>=4.10.0
+
+# Speculative-decoding kernels
+# flashinfer provides the cascade-attention primitives used by D3.
+flashinfer-python>=0.2.0
+
+# Optional: flash-attention is auto-detected at runtime; install it for the
+# best target-model speed, otherwise we fall back to torch SDPA.
+# flash-attn>=2.6.0
+
+# Inference framework used as a reference baseline / for distributed launches.
+git+https://github.com/sgl-project/sglang.git@refs/pull/20547/head#subdirectory=python
+
+# Logging / progress / build tooling
+loguru>=0.7.0
+tqdm>=4.66.0
+rich>=13.0.0
+packaging
+ninja

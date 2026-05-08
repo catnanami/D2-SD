@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "D2SD: Dual-Diffuse Speculative Decoding"
+abstract: >
+  D2SD is a dual-draft speculative decoding framework. A first DFlash draft
+  proposes a block of candidate tokens from target hidden features; a second
+  DTA (Dual Token Anchor) draft expands and re-samples uncertain positions
+  from the first draft using cascade attention; the target model then verifies
+  the merged draft branches in a single forward pass.
+type: software
+license: Apache-2.0
+authors:
+  - family-names: "The D2SD Authors"
+repository-code: "https://github.com/your-org/D2SD"
+preferred-citation:
+  type: article
+  title: "D2SD: Dual-Diffuse Speculative Decoding for Large Language Models"
+  year: 2026
+  authors:
+    - family-names: "The D2SD Authors"

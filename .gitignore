@@ -1,0 +1,62 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.installed.cfg
+*.manifest
+*.spec
+
+# --- Virtual environments ---
+.env
+.venv
+env/
+venv/
+ENV/
+.python-version
+
+# --- Editors / IDE / agent state ---
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+.DS_Store
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- Testing / coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --- Project artifacts ---
+logs/
+outputs/
+checkpoints/
+wandb/
+*.log
+*.pt
+*.bin
+*.safetensors
+
+# --- HuggingFace cache (in case it gets symlinked locally) ---
+.cache/
+hf_cache/
+
+# --- OS junk ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
