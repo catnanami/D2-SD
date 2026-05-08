@@ -17,6 +17,17 @@
 - **Lossless decoding.** Greedy and temperature sampling are both supported and remain mathematically equivalent to standard autoregressive decoding from the target.
 - **Reproducible benchmarks.** One script reproduces results across math, coding, and chat datasets (GSM8K, MATH-500, AIME-24/25, HumanEval, MBPP, LiveCodeBench, SWE-bench, MT-Bench, Alpaca).
 
+## Pipeline at a glance
+
+<p align="center">
+  <a href="assets/pipeline_contrast.pdf">
+    <img src="assets/pipeline_contrast.png" alt="DFlash baseline vs. D²SD pipeline" width="100%">
+  </a>
+</p>
+
+> **(a) DFlash baseline** drafts an entire block in one shot; on the first mismatch the rest of the block is discarded.
+> **(b) D²SD** scores per-position confidences from the first DFlash draft, picks the top-k most uncertain positions as rejection boundaries, re-masks them with a VP-Drafter to produce variable-prefix branches, and verifies all branches in a single cascade-tree forward pass — yielding a longer accepted prefix per iteration. *(Click the figure for the full-resolution PDF.)*
+
 ## Repository layout
 
 ```
