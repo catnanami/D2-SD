@@ -9,15 +9,13 @@
 
 ---
 
-## Highlights
+## 🌟Highlights
 
 - **Dual-draft pipeline.** A first DFlash draft proposes a block of candidate tokens conditioned on target hidden features. A second DTA draft re-samples the most uncertain positions to produce additional candidate branches.
 - **Cascade verification.** The target model verifies all branches in one forward pass, sharing the prefix KV via [FlashInfer](https://github.com/flashinfer-ai/flashinfer) cascade attention; CUDA-graph capture removes per-layer kernel-launch overhead.
 - **Plug-and-play with HuggingFace models.** Tested on Qwen3 and GPT-OSS targets; no surgery on the target weights.
 - **Lossless decoding.** Greedy and temperature sampling are both supported and remain mathematically equivalent to standard autoregressive decoding from the target.
 - **Reproducible benchmarks.** One script reproduces results across math, coding, and chat datasets (GSM8K, MATH-500, AIME-24/25, HumanEval, MBPP, LiveCodeBench, SWE-bench, MT-Bench, Alpaca).
-
-## Pipeline at a glance
 
 <p align="center">
   <a href="assets/pipeline_contrast.pdf">
@@ -28,31 +26,12 @@
 > **(a) DFlash baseline** drafts an entire block in one shot; on the first mismatch the rest of the block is discarded.
 > **(b) D²SD** scores per-position confidences from the first DFlash draft, picks the top-k most uncertain positions as rejection boundaries, re-masks them with a VP-Drafter to produce variable-prefix branches, and verifies all branches in a single cascade-tree forward pass — yielding a longer accepted prefix per iteration. *(Click the figure for the full-resolution PDF.)*
 
-## Repository layout
 
-```
-D2SD/
-├── benchmark.py              # Unified driver for DFlash and D²SD (`--mode {dflash,d3}`)
-├── distributed.py            # Thin torch.distributed helpers used by the driver
-├── model/
-│   ├── dflash.py             # DFlash draft model (Qwen3-based)
-│   ├── cascade_graph.py      # CUDA-graph runner for cascade local-attn + merge
-│   └── utils.py              # Sampling, layer-id selection, dataset loaders
-├── generation/
-│   ├── dflash_generator.py   # Single-draft (DFlash-only) generator
-│   ├── d3_generator.py       # Dual-draft (DFlash + DTA) generator
-│   ├── verification.py       # Cascade target verification (Qwen3 / GPT-OSS)
-│   └── state.py              # Per-sequence generation state container
-├── examples/
-│   ├── run_benchmark.sh      # DFlash baseline sweep
-│   └── run_benchmark_dd.sh   # D²SD sweep
-├── paper/
-│   └── 2026_D2SD_Arxiv.pdf
-├── requirements.txt
-└── LICENSE
-```
+## 📢News
+[2026.07.01] SpecForge now supports VP-Drafter training. Try it now! (https://github.com/sgl-project/SpecForge/blob/main/examples/run_qwen3_8b_dta_online.sh)
 
-## Installation
+
+## 🛠️Installation
 
 D²SD targets Linux + CUDA. We recommend Python 3.10 or 3.11.
 
@@ -72,11 +51,7 @@ pip install flash-attn --no-build-isolation
 
 `flashinfer-python` is required (it powers cascade attention); `flash-attn` is auto-detected at runtime and the code falls back to `torch.sdpa` if it is not installed.
 
-### Hardware
-
-We have validated the benchmark on 8× NVIDIA H100/A100 GPUs. A single GPU is enough to run small batches; the example scripts default to 8 GPUs via `torchrun --nproc_per_node=8` and partition the dataset across ranks.
-
-## Models
+## 🤖Models
 
 D²SD requires three checkpoints:
 
@@ -88,7 +63,7 @@ D²SD requires three checkpoints:
 
 You can train your own DFlash and DTA drafts following the procedure in the paper. We will release pre-trained checkpoints alongside the camera-ready release; in the meantime point `--draft-name-or-path` and `--dta-name-or-path` at your local checkpoints.
 
-## Quick start
+## 🚅Quick start
 
 ```bash
 # Single-draft baseline (DFlash only) on GSM8K with 32 samples on 1 GPU
@@ -115,7 +90,7 @@ The driver prints, for each run:
 - average accepted block length and a histogram,
 - a per-stage breakdown (draft1 / draft2 / verify / other) in `%`, `ms/tok`, and `ms/iter`.
 
-## Reproducing the paper
+## 🗒️Reproducing the paper
 
 The two scripts under `examples/` reproduce the headline numbers. Both accept the same set of environment variables, so you can override paths, GPUs, block sizes, and the dataset list without editing the file.
 
@@ -140,36 +115,7 @@ TASKS="gsm8k:64,humaneval:32" bash examples/run_benchmark.sh
 
 Logs land in `logs/<dataset>.log` (DFlash) and `logs/<dataset>_d2sd.log` (D²SD).
 
-### Supported datasets
-
-`--dataset` accepts: `gsm8k`, `math500`, `aime24`, `aime25`, `humaneval`, `mbpp`, `lbpp`, `livecodebench`, `swe-bench`, `alpaca`, `mt-bench`. Each is loaded from HuggingFace Hub on first use; ensure you have network access (or pre-cache them with `HF_DATASETS_CACHE`).
-
-## Command-line reference
-
-```
-benchmark.py [-h] --mode {dflash,d3}
-             --model-name-or-path TARGET
-             --draft-name-or-path DRAFT
-             [--dta-name-or-path DTA]            # required when --mode d3
-             [--block-size BLOCK_SIZE]           # DFlash draft block (default: 16)
-             [--block-size-2 BLOCK_SIZE_2]       # DTA / verify block (>= block-size)
-             [--batch-size BATCH_SIZE]           # currently S=1; >1 runs sequentially
-             [--dataset DATASET]
-             [--max-samples MAX_SAMPLES]
-             [--max-new-tokens MAX_NEW_TOKENS]
-             [--temperature TEMPERATURE]
-```
-
-## Method (in brief)
-
-1. **First draft (DFlash).** A lightweight Qwen3-flavoured model takes the target's most recent hidden states (selected layers, fused via a small linear) and predicts a block of `block_size` tokens in parallel.
-2. **Branch selection.** Per-position confidences from the first draft are used to pick the top-k positions where the prediction is most likely to be wrong.
-3. **Second draft (DTA).** A second draft re-samples each selected position and the suffix of the block, producing several candidate branches that share a common prefix.
-4. **Cascade verification.** The target model forwards all branches in one pass, attending over a *shared* prefix KV plus per-branch local KV via FlashInfer cascade attention; a CUDA graph fuses the local-attn and LSE-merge kernels per layer. The longest matching branch is accepted.
-
-See `paper/2026_D2SD_Arxiv.pdf` for the full description, ablations, and analysis.
-
-## Citation
+## 📝Citation
 
 If D²SD is useful in your work, please cite us:
 
